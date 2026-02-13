@@ -1270,8 +1270,12 @@ svg.style.display = "block";
           leftPct: pos.left,
           topPct: pos.top,
           sizeVw,
+          baseOpacity: opacity,
+          fadeDepth: rand(0.12, 0.3),
+          fadeSpeed: rand(0.03, 0.08),
+          fadePhase: rand(0, Math.PI * 2),
           driftX: 0,
-          driftSpeedPx: rand(2, 6)
+          driftSpeedPx: rand(3, 8)
         });
       });
     });
@@ -1288,6 +1292,7 @@ svg.style.display = "block";
     const tick = (timeMs) => {
       if (!lastTick) lastTick = timeMs;
       const dt = Math.min(0.05, Math.max(0, (timeMs - lastTick) / 1000));
+      const t = timeMs * 0.001;
       lastTick = timeMs;
 
       clouds.forEach((cloud) => {
@@ -1305,8 +1310,14 @@ svg.style.display = "block";
           actualX = baseX + cloud.driftX;
         }
 
+        const fadeWave = (Math.sin(t * Math.PI * 2 * cloud.fadeSpeed + cloud.fadePhase) + 1) * 0.5;
+        const minOpacity = Math.max(0.2, cloud.baseOpacity - cloud.fadeDepth);
+        const maxOpacity = Math.min(0.85, cloud.baseOpacity + cloud.fadeDepth);
+        const currentOpacity = minOpacity + (maxOpacity - minOpacity) * fadeWave;
+
         cloud.el.style.left = `${actualX.toFixed(2)}px`;
         cloud.el.style.top = `${baseY.toFixed(2)}px`;
+        cloud.el.style.opacity = currentOpacity.toFixed(3);
         cloud.el.style.transform = "translate(-50%, -50%)";
       });
 
