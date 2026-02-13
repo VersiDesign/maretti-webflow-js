@@ -1038,10 +1038,11 @@ svg.style.display = "block";
       if (key) subregionByKey.set(key, el);
     });
 
-    let activeKey = "";
+    let activeKey = null;
     let lastScrollKey = "";
     let lastScrollAt = 0;
-    let hasConsumedInitialHover = false;
+    const hasHoverUnlock = !!isCoarsePointer;
+    let interactionsUnlocked = hasHoverUnlock;
 
     const getPanelKey = (panel) => {
       const idKey = (panel.id || "").trim().toLowerCase();
@@ -1082,6 +1083,9 @@ svg.style.display = "block";
       });
     };
 
+    // Always start with no highlighted map subregion or content panel.
+    setActiveKey("");
+
     subregionEls.forEach((el) => {
       const key = keyFromSubregionEl(el);
       if (!key) return;
@@ -1092,13 +1096,15 @@ svg.style.display = "block";
       hitTargets.forEach((target) => {
         const activateFromMap = (event) => {
           if (isCoarsePointer && event?.type !== "click") return;
-          setActiveKey(key);
 
-          // Prevent accidental auto-scroll if the cursor lands on a hit area after navigation.
-          if (event?.type === "mouseenter" && !hasConsumedInitialHover) {
-            hasConsumedInitialHover = true;
+          if (!interactionsUnlocked && event?.type === "mouseenter") {
+            interactionsUnlocked = true;
             return;
           }
+
+          if (!interactionsUnlocked) return;
+
+          setActiveKey(key);
 
           scrollToPanel(key);
         };
@@ -1117,6 +1123,11 @@ svg.style.display = "block";
         entries.forEach((entry) => {
           panelIntersections.set(entry.target, entry.intersectionRatio);
         });
+
+        if (!interactionsUnlocked) {
+          setActiveKey("");
+          return;
+        }
 
         let bestPanel = null;
         let bestRatio = 0;
