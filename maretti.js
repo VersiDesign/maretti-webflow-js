@@ -1228,6 +1228,9 @@ svg.style.display = "block";
     };
 
     const clouds = [];
+    const useLargeClouds = window.matchMedia?.("(max-width: 1366px), (hover: none), (pointer: coarse)")?.matches;
+    const cloudSizeBase = useLargeClouds ? 18 : 9;
+    const cloudSizeSpanHalf = useLargeClouds ? 11 : 5.5;
     wraps.forEach((wrap) => {
       if (wrap.querySelector(".map__clouds")) return;
 
@@ -1254,7 +1257,7 @@ svg.style.display = "block";
         img.decoding = "async";
 
         const sumRand = Math.random() + Math.random();
-        const sizeVw = 9 + sumRand * 5.5;
+        const sizeVw = cloudSizeBase + sumRand * cloudSizeSpanHalf;
         const opacity = rand(0.3, 0.7);
         const pos = pickCloudPosition(wrapRect, sizeVw, placedBoxes);
         placedBoxes.push(pos.box);
