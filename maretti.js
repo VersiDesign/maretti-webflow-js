@@ -1228,9 +1228,11 @@ svg.style.display = "block";
     };
 
     const clouds = [];
-    const useLargeClouds = window.matchMedia?.("(max-width: 1366px), (hover: none), (pointer: coarse)")?.matches;
-    const cloudSizeBase = useLargeClouds ? 18 : 9;
-    const cloudSizeSpanHalf = useLargeClouds ? 11 : 5.5;
+    const isMobileCloudRange = window.matchMedia?.("(max-width: 767px)")?.matches;
+    const isTabletCloudRange = !isMobileCloudRange &&
+      window.matchMedia?.("(max-width: 1366px), (hover: none), (pointer: coarse)")?.matches;
+    const cloudSizeBase = isMobileCloudRange ? 25 : isTabletCloudRange ? 18 : 9;
+    const cloudSizeSpanHalf = isMobileCloudRange ? 17.5 : isTabletCloudRange ? 11 : 5.5;
     wraps.forEach((wrap) => {
       if (wrap.querySelector(".map__clouds")) return;
 
