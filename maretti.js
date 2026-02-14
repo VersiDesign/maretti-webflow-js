@@ -1055,6 +1055,8 @@ svg.style.display = "block";
       }
       return "";
     };
+    const panelKeysInOrder = panels.map(getPanelKey).filter(Boolean);
+    const finalPanelKey = panelKeysInOrder.length ? panelKeysInOrder[panelKeysInOrder.length - 1] : "";
 
     const scrollToPanel = (key) => {
       if (!key) return;
@@ -1118,36 +1120,50 @@ svg.style.display = "block";
     });
 
     const panelIntersections = new Map();
+    const isAtPageTop = () => window.scrollY <= 1;
+    const isAtPageBottom = () => {
+      const doc = document.documentElement;
+      return window.innerHeight + window.scrollY >= doc.scrollHeight - 1;
+    };
+    const updateActiveFromScroll = () => {
+      if (isAtPageTop()) {
+        setActiveKey("");
+        return;
+      }
+
+      if (!interactionsUnlocked) interactionsUnlocked = true;
+
+      if (isAtPageBottom()) {
+        setActiveKey(finalPanelKey);
+        return;
+      }
+
+      let bestPanel = null;
+      let bestRatio = 0;
+      panels.forEach((panel) => {
+        const ratio = panelIntersections.get(panel) || 0;
+        if (ratio > bestRatio) {
+          bestRatio = ratio;
+          bestPanel = panel;
+        }
+      });
+
+      if (bestPanel && bestRatio >= 0.8) {
+        const key = getPanelKey(bestPanel);
+        if (key) {
+          setActiveKey(key);
+          return;
+        }
+      }
+
+      setActiveKey("");
+    };
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           panelIntersections.set(entry.target, entry.intersectionRatio);
         });
-
-        if (!interactionsUnlocked) {
-          setActiveKey("");
-          return;
-        }
-
-        let bestPanel = null;
-        let bestRatio = 0;
-        panels.forEach((panel) => {
-          const ratio = panelIntersections.get(panel) || 0;
-          if (ratio > bestRatio) {
-            bestRatio = ratio;
-            bestPanel = panel;
-          }
-        });
-
-        if (bestPanel && bestRatio >= 0.8) {
-          const key = getPanelKey(bestPanel);
-          if (key) {
-            setActiveKey(key);
-            return;
-          }
-        } else {
-          setActiveKey("");
-        }
+        updateActiveFromScroll();
       },
       {
         root: null,
@@ -1158,6 +1174,8 @@ svg.style.display = "block";
     panels.forEach((panel) => {
       observer.observe(panel);
     });
+    window.addEventListener("scroll", updateActiveFromScroll, { passive: true });
+    updateActiveFromScroll();
 
   }
 
