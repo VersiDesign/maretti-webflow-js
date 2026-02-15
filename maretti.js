@@ -464,16 +464,9 @@ svg.style.display = "block";
         return REGION_LABEL_NAMES.some((name) => t.includes(name));
       });
     }
-    const mountRect = mountEl.getBoundingClientRect();
     labelCenters = labelEls.map((el) => {
       const r = el.getBoundingClientRect();
       if (!r || r.width < 1 || r.height < 1) return null;
-      const inView =
-        r.right >= mountRect.left &&
-        r.left <= mountRect.right &&
-        r.bottom >= mountRect.top &&
-        r.top <= mountRect.bottom;
-      if (!inView) return null;
       return { el, rect: r, cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
     }).filter(Boolean);
     return labelCenters;
@@ -773,30 +766,10 @@ svg.style.display = "block";
   const regionCenters = regions
     .map((el) => ({ el, center: getSvgCenter(el) }))
     .filter((entry) => !!entry.center);
-  let regionLabelEls = regionLabels;
-  if (!regionLabelEls.length) {
-    regionLabelEls = Array.from(svg.querySelectorAll("text")).filter((el) => {
-      const t = (el.textContent || "").toUpperCase().trim();
-      return REGION_LABEL_NAMES.some((name) => t.includes(name));
-    });
-  }
-  regionLabelEls.forEach((labelEl) => {
+  regions.forEach((el) => {
+    const labelEl = getClosestLabelForRegion(el);
     const key = getRegionKeyFromLabel(labelEl && labelEl.textContent);
-    if (!key || regionByKey.has(key)) return;
-    const labelCenter = getSvgCenter(labelEl);
-    if (!labelCenter || !regionCenters.length) return;
-    let best = null;
-    let bestD = Infinity;
-    regionCenters.forEach((entry) => {
-      const dx = entry.center.x - labelCenter.x;
-      const dy = entry.center.y - labelCenter.y;
-      const d = dx * dx + dy * dy;
-      if (d < bestD) {
-        bestD = d;
-        best = entry.el;
-      }
-    });
-    if (best) regionByKey.set(key, best);
+    if (key && !regionByKey.has(key)) regionByKey.set(key, el);
   });
   // Fallback mapping when labels are absent/unreadable in a given layout.
   const vb = getViewBox();
