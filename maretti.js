@@ -1694,7 +1694,7 @@ svg.style.display = "block";
     const path = (window.location.pathname || "").replace(/\/+$/, "") || "/";
     const isOurWinesPage = path === "/our-wines";
     const isDesktopOurWinesMap = isOurWinesPage
-      ? !!window.matchMedia?.("(min-width: 992px)")?.matches
+      ? !!window.matchMedia?.("(min-width: 1367px) and (hover: hover) and (pointer: fine)")?.matches
       : true;
 
     // IMPORTANT:
@@ -1706,7 +1706,7 @@ svg.style.display = "block";
       mount: mountSelector,
       url: "https://cdn.prod.website-files.com/698afd2204216e1cca686cf9/698aff08357e0836fe433d52_map-14.svg",
       waves: true,
-      regionHoverZoom: !isOurWinesPage || isDesktopOurWinesMap,
+      regionHoverZoom: true,
       regionHoverOptions: isOurWinesPage && isDesktopOurWinesMap
         ? {
             enableInteractions: false,
