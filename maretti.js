@@ -167,6 +167,9 @@ svg.style.display = "block";
     ? Math.max(0, Math.min(1, opts.hoverAnchorYFactor))
     : 0.5;
   const externalHoverReset = opts.externalHoverReset !== false;
+  const baseShiftXFactor = Number.isFinite(opts.baseShiftXFactor)
+    ? Math.max(-1, Math.min(1, opts.baseShiftXFactor))
+    : 0;
 
   // If the SVG lacks .region classes, fall back to [data-region]
   const regionDataNodes = Array.from(svg.querySelectorAll("[data-region]"));
@@ -333,7 +336,7 @@ svg.style.display = "block";
     const cy = mapBounds.y + mapBounds.height / 2;
 
     return {
-      x: vb.x + vb.w / 2 - cx * scale + BASE_BIAS_X,
+      x: vb.x + vb.w / 2 - cx * scale + BASE_BIAS_X + vb.w * baseShiftXFactor,
       y: vb.y + vb.h / 2 - cy * scale + BASE_BIAS_Y,
       scale
     };
@@ -1707,7 +1710,8 @@ svg.style.display = "block";
             enableMapNavigation: true,
             externalHoverSelector: ".bottle__link",
             hoverAnchorXFactor: 0.75,
-            externalHoverReset: false
+            externalHoverReset: false,
+            baseShiftXFactor: 0.05
           }
         : {}
     });
