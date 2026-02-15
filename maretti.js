@@ -435,6 +435,14 @@ svg.style.display = "block";
     if (token === "puglia" || token === "apulia") return "PUGLIA";
     return "";
   };
+  const REGION_GEO_ANCHORS = {
+    PIEDMONT: { x: 0.22, y: 0.23 },
+    LOMBARDIA: { x: 0.33, y: 0.21 },
+    VENETO: { x: 0.47, y: 0.22 },
+    FRIULI: { x: 0.58, y: 0.21 },
+    TUSCANY: { x: 0.36, y: 0.43 },
+    PUGLIA: { x: 0.69, y: 0.63 }
+  };
 
   const getSvgCenter = (el) => {
     if (!el || typeof el.getBBox !== "function") return null;
@@ -790,6 +798,25 @@ svg.style.display = "block";
     });
     if (best) regionByKey.set(key, best);
   });
+  // Fallback mapping when labels are absent/unreadable in a given layout.
+  const vb = getViewBox();
+  const toViewPoint = (f) => ({ x: vb.x + vb.w * f.x, y: vb.y + vb.h * f.y });
+  Object.keys(REGION_GEO_ANCHORS).forEach((key) => {
+    if (regionByKey.has(key) || !regionCenters.length) return;
+    const target = toViewPoint(REGION_GEO_ANCHORS[key]);
+    let best = null;
+    let bestD = Infinity;
+    regionCenters.forEach((entry) => {
+      const dx = entry.center.x - target.x;
+      const dy = entry.center.y - target.y;
+      const d = dx * dx + dy * dy;
+      if (d < bestD) {
+        bestD = d;
+        best = entry.el;
+      }
+    });
+    if (best) regionByKey.set(key, best);
+  });
 
   const getRegionFromTrigger = (triggerEl) => {
     if (!triggerEl || !triggerEl.classList) return null;
@@ -825,6 +852,7 @@ svg.style.display = "block";
       if (!fromTrigger) return;
       const toTrigger = findTrigger(event.relatedTarget);
       if (toTrigger === fromTrigger) return;
+      if (event.relatedTarget && mountEl.contains(event.relatedTarget)) return;
       deactivateFromTrigger();
     };
     const handleFocusIn = (event) => {
@@ -1695,7 +1723,7 @@ svg.style.display = "block";
       regionHoverOptions: isOurWinesPage
         ? {
             enableInteractions: false,
-            enableMapNavigation: false,
+            enableMapNavigation: true,
             externalHoverSelector: ".bottle__link"
           }
         : {}
