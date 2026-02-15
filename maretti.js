@@ -170,6 +170,9 @@ svg.style.display = "block";
   const baseShiftXFactor = Number.isFinite(opts.baseShiftXFactor)
     ? Math.max(-1, Math.min(1, opts.baseShiftXFactor))
     : 0;
+  const baseShiftY = Number.isFinite(opts.baseShiftY)
+    ? opts.baseShiftY
+    : 0;
 
   // If the SVG lacks .region classes, fall back to [data-region]
   const regionDataNodes = Array.from(svg.querySelectorAll("[data-region]"));
@@ -337,7 +340,7 @@ svg.style.display = "block";
 
     return {
       x: vb.x + vb.w / 2 - cx * scale + BASE_BIAS_X + vb.w * baseShiftXFactor,
-      y: vb.y + vb.h / 2 - cy * scale + BASE_BIAS_Y,
+      y: vb.y + vb.h / 2 - cy * scale + BASE_BIAS_Y + baseShiftY,
       scale
     };
   }
@@ -1707,15 +1710,19 @@ svg.style.display = "block";
       url: "https://cdn.prod.website-files.com/698afd2204216e1cca686cf9/698aff08357e0836fe433d52_map-14.svg",
       waves: true,
       regionHoverZoom: true,
-      regionHoverOptions: isOurWinesPage && isDesktopOurWinesMap
-        ? {
-            enableInteractions: false,
-            enableMapNavigation: true,
-            externalHoverSelector: ".bottle__link",
-            hoverAnchorXFactor: 0.75,
-            externalHoverReset: false,
-            baseShiftXFactor: 0.05
-          }
+      regionHoverOptions: isOurWinesPage
+        ? (isDesktopOurWinesMap
+            ? {
+                enableInteractions: false,
+                enableMapNavigation: true,
+                externalHoverSelector: ".bottle__link",
+                hoverAnchorXFactor: 0.75,
+                externalHoverReset: false,
+                baseShiftXFactor: 0.05
+              }
+            : {
+                baseShiftY: 80
+              })
         : {}
     });
   });
