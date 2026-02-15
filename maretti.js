@@ -1693,6 +1693,9 @@ svg.style.display = "block";
     if (!mapEl) return;
     const path = (window.location.pathname || "").replace(/\/+$/, "") || "/";
     const isOurWinesPage = path === "/our-wines";
+    const isDesktopOurWinesMap = isOurWinesPage
+      ? !!window.matchMedia?.("(min-width: 992px)")?.matches
+      : true;
 
     // IMPORTANT:
     // Mount into the new viewport div if you add it in Webflow:
@@ -1703,8 +1706,8 @@ svg.style.display = "block";
       mount: mountSelector,
       url: "https://cdn.prod.website-files.com/698afd2204216e1cca686cf9/698aff08357e0836fe433d52_map-14.svg",
       waves: true,
-      regionHoverZoom: true,
-      regionHoverOptions: isOurWinesPage
+      regionHoverZoom: !isOurWinesPage || isDesktopOurWinesMap,
+      regionHoverOptions: isOurWinesPage && isDesktopOurWinesMap
         ? {
             enableInteractions: false,
             enableMapNavigation: true,
