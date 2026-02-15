@@ -166,6 +166,7 @@ svg.style.display = "block";
   const hoverAnchorYFactor = Number.isFinite(opts.hoverAnchorYFactor)
     ? Math.max(0, Math.min(1, opts.hoverAnchorYFactor))
     : 0.5;
+  const externalHoverReset = opts.externalHoverReset !== false;
 
   // If the SVG lacks .region classes, fall back to [data-region]
   const regionDataNodes = Array.from(svg.querySelectorAll("[data-region]"));
@@ -828,6 +829,7 @@ svg.style.display = "block";
     const handlePointerOut = (event) => {
       const fromTrigger = findTrigger(event.target);
       if (!fromTrigger) return;
+      if (!externalHoverReset) return;
       const toTrigger = findTrigger(event.relatedTarget);
       if (toTrigger === fromTrigger) return;
       if (event.relatedTarget && mountEl.contains(event.relatedTarget)) return;
@@ -841,6 +843,7 @@ svg.style.display = "block";
     const handleFocusOut = (event) => {
       const fromTrigger = findTrigger(event.target);
       if (!fromTrigger) return;
+      if (!externalHoverReset) return;
       const toTrigger = findTrigger(event.relatedTarget);
       if (toTrigger === fromTrigger) return;
       deactivateFromTrigger();
@@ -1703,7 +1706,8 @@ svg.style.display = "block";
             enableInteractions: false,
             enableMapNavigation: true,
             externalHoverSelector: ".bottle__link",
-            hoverAnchorXFactor: 0.75
+            hoverAnchorXFactor: 0.75,
+            externalHoverReset: false
           }
         : {}
     });
