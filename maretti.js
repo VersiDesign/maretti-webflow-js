@@ -50,7 +50,8 @@
     url,
     className = "italy-map",
     waves = true,
-    regionHoverZoom = true
+    regionHoverZoom = true,
+    regionHoverOptions = {}
   }) {
     if (!url) {
       console.warn("initItalyMap: missing url");
@@ -99,8 +100,12 @@ svg.style.display = "block";
 
           // 3) Region hover zoom
           if (regionHoverZoom) {
+            const zoomOpts = { ...regionHoverOptions };
+            if (typeof zoomOpts.enableInteractions !== "boolean") {
+              zoomOpts.enableInteractions = !disableRegionTapZoom;
+            }
             initRegionHoverZoom(svg, zoomLayer, mountEl, {
-              enableInteractions: !disableRegionTapZoom
+              ...zoomOpts
             });
           }
         };
@@ -151,6 +156,10 @@ svg.style.display = "block";
     return;
   }
   const enableInteractions = opts.enableInteractions !== false;
+  const enableMapNavigation = opts.enableMapNavigation !== false;
+  const externalHoverSelector = typeof opts.externalHoverSelector === "string"
+    ? opts.externalHoverSelector.trim()
+    : "";
 
   // If the SVG lacks .region classes, fall back to [data-region]
   const regionDataNodes = Array.from(svg.querySelectorAll("[data-region]"));
@@ -409,6 +418,22 @@ svg.style.display = "block";
     if (t.includes("FRIULI")) return "FRIULI";
     if (t.includes("PUGLIA")) return "PUGLIA";
     return null;
+  };
+
+  const normalizeRegionKey = (rawKey) => {
+    const token = (rawKey || "")
+      .toLowerCase()
+      .replace(/^-+/, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    if (!token) return "";
+    if (token === "piedmont") return "PIEDMONT";
+    if (token === "lombardy" || token === "lombardia") return "LOMBARDIA";
+    if (token === "veneto") return "VENETO";
+    if (token === "tuscany" || token === "toscana") return "TUSCANY";
+    if (token === "friuli" || token === "friuli-venezia-giulia") return "FRIULI";
+    if (token === "puglia" || token === "apulia") return "PUGLIA";
+    return "";
   };
 
   const computeLabelCenters = () => {
@@ -725,9 +750,53 @@ svg.style.display = "block";
     });
   }
 
-  // Click/tap navigation for all devices
-  svg.addEventListener("click", handleMapClick);
-  svg.addEventListener("keydown", handleMapKeydown);
+  const regionByKey = new Map();
+  regions.forEach((el) => {
+    const labelEl = getClosestLabelForRegion(el);
+    const key = getRegionKeyFromLabel(labelEl && labelEl.textContent);
+    if (key && !regionByKey.has(key)) regionByKey.set(key, el);
+  });
+
+  const getRegionFromTrigger = (triggerEl) => {
+    if (!triggerEl || !triggerEl.classList) return null;
+    for (const cls of triggerEl.classList) {
+      if (!cls.startsWith("--")) continue;
+      const key = normalizeRegionKey(cls);
+      if (key && regionByKey.has(key)) return regionByKey.get(key);
+    }
+    return null;
+  };
+
+  if (externalHoverSelector) {
+    const triggers = Array.from(document.querySelectorAll(externalHoverSelector));
+    if (triggers.length) {
+      const activateFromTrigger = (triggerEl) => {
+        const regionEl = getRegionFromTrigger(triggerEl);
+        if (!regionEl) return;
+        cancelReset();
+        zoomToRegion(regionEl);
+      };
+      const deactivateFromTrigger = () => {
+        cancelReset();
+        resetZoom();
+      };
+      triggers.forEach((triggerEl) => {
+        triggerEl.addEventListener("mouseenter", () => activateFromTrigger(triggerEl));
+        triggerEl.addEventListener("focusin", () => activateFromTrigger(triggerEl));
+        triggerEl.addEventListener("mouseleave", deactivateFromTrigger);
+        triggerEl.addEventListener("focusout", (event) => {
+          if (event.relatedTarget && triggerEl.contains(event.relatedTarget)) return;
+          deactivateFromTrigger();
+        });
+      });
+    }
+  }
+
+  // Click/tap navigation for interactive map mode only
+  if (enableMapNavigation) {
+    svg.addEventListener("click", handleMapClick);
+    svg.addEventListener("keydown", handleMapKeydown);
+  }
 
   // Accessibility labels for regions based on nearest label text
   regions.forEach((el) => {
@@ -753,12 +822,14 @@ svg.style.display = "block";
       svg.removeEventListener("pointermove", handleMove);
     });
   }
-  svg.addEventListener("remove", () => {
-    svg.removeEventListener("click", handleMapClick);
-  });
-  svg.addEventListener("remove", () => {
-    svg.removeEventListener("keydown", handleMapKeydown);
-  });
+  if (enableMapNavigation) {
+    svg.addEventListener("remove", () => {
+      svg.removeEventListener("click", handleMapClick);
+    });
+    svg.addEventListener("remove", () => {
+      svg.removeEventListener("keydown", handleMapKeydown);
+    });
+  }
 }
 
   // =========================================================
@@ -1547,6 +1618,8 @@ svg.style.display = "block";
 
     const mapEl = document.querySelector("#map");
     if (!mapEl) return;
+    const path = (window.location.pathname || "").replace(/\/+$/, "") || "/";
+    const isOurWinesPage = path === "/our-wines";
 
     // IMPORTANT:
     // Mount into the new viewport div if you add it in Webflow:
@@ -1557,7 +1630,14 @@ svg.style.display = "block";
       mount: mountSelector,
       url: "https://cdn.prod.website-files.com/698afd2204216e1cca686cf9/698aff08357e0836fe433d52_map-14.svg",
       waves: true,
-      regionHoverZoom: true
+      regionHoverZoom: true,
+      regionHoverOptions: isOurWinesPage
+        ? {
+            enableInteractions: false,
+            enableMapNavigation: false,
+            externalHoverSelector: ".bottle__link"
+          }
+        : {}
     });
   });
 })();
