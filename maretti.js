@@ -160,6 +160,12 @@ svg.style.display = "block";
   const externalHoverSelector = typeof opts.externalHoverSelector === "string"
     ? opts.externalHoverSelector.trim()
     : "";
+  const hoverAnchorXFactor = Number.isFinite(opts.hoverAnchorXFactor)
+    ? Math.max(0, Math.min(1, opts.hoverAnchorXFactor))
+    : 0.5;
+  const hoverAnchorYFactor = Number.isFinite(opts.hoverAnchorYFactor)
+    ? Math.max(0, Math.min(1, opts.hoverAnchorYFactor))
+    : 0.5;
 
   // If the SVG lacks .region classes, fall back to [data-region]
   const regionDataNodes = Array.from(svg.querySelectorAll("[data-region]"));
@@ -349,8 +355,8 @@ svg.style.display = "block";
 
   const computeTargetForRegion = (el, scale, anchorPoint) => {
     const { x, y, w, h } = getViewBox();
-    const vcx = x + w / 2;
-    const vcy = y + h / 2;
+    const vcx = x + w * hoverAnchorXFactor;
+    const vcy = y + h * hoverAnchorYFactor;
 
     let bb;
     try { bb = el.getBBox(); } catch (e) { return null; }
@@ -1696,7 +1702,8 @@ svg.style.display = "block";
         ? {
             enableInteractions: false,
             enableMapNavigation: true,
-            externalHoverSelector: ".bottle__link"
+            externalHoverSelector: ".bottle__link",
+            hoverAnchorXFactor: 0.75
           }
         : {}
     });
