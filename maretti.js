@@ -1699,6 +1699,9 @@ svg.style.display = "block";
     const isDesktopOurWinesMap = isOurWinesPage
       ? !!window.matchMedia?.("(min-width: 1367px) and (hover: hover) and (pointer: fine)")?.matches
       : true;
+    const isMobileOurWinesMap = isOurWinesPage
+      ? !!window.matchMedia?.("(max-width: 767px)")?.matches
+      : false;
 
     // IMPORTANT:
     // Mount into the new viewport div if you add it in Webflow:
@@ -1721,7 +1724,7 @@ svg.style.display = "block";
                 baseShiftXFactor: 0.05
               }
             : {
-                baseShiftY: 80
+                baseShiftY: isMobileOurWinesMap ? 120 : 80
               })
         : {}
     });
