@@ -436,6 +436,17 @@ svg.style.display = "block";
     return "";
   };
 
+  const getSvgCenter = (el) => {
+    if (!el || typeof el.getBBox !== "function") return null;
+    try {
+      const bb = el.getBBox();
+      if (!bb || bb.width <= 0 || bb.height <= 0) return null;
+      return { x: bb.x + bb.width / 2, y: bb.y + bb.height / 2 };
+    } catch (e) {
+      return null;
+    }
+  };
+
   const computeLabelCenters = () => {
     labelCenters = null;
     let labelEls = regionLabels;
@@ -751,10 +762,33 @@ svg.style.display = "block";
   }
 
   const regionByKey = new Map();
-  regions.forEach((el) => {
-    const labelEl = getClosestLabelForRegion(el);
+  const regionCenters = regions
+    .map((el) => ({ el, center: getSvgCenter(el) }))
+    .filter((entry) => !!entry.center);
+  let regionLabelEls = regionLabels;
+  if (!regionLabelEls.length) {
+    regionLabelEls = Array.from(svg.querySelectorAll("text")).filter((el) => {
+      const t = (el.textContent || "").toUpperCase().trim();
+      return REGION_LABEL_NAMES.some((name) => t.includes(name));
+    });
+  }
+  regionLabelEls.forEach((labelEl) => {
     const key = getRegionKeyFromLabel(labelEl && labelEl.textContent);
-    if (key && !regionByKey.has(key)) regionByKey.set(key, el);
+    if (!key || regionByKey.has(key)) return;
+    const labelCenter = getSvgCenter(labelEl);
+    if (!labelCenter || !regionCenters.length) return;
+    let best = null;
+    let bestD = Infinity;
+    regionCenters.forEach((entry) => {
+      const dx = entry.center.x - labelCenter.x;
+      const dy = entry.center.y - labelCenter.y;
+      const d = dx * dx + dy * dy;
+      if (d < bestD) {
+        bestD = d;
+        best = entry.el;
+      }
+    });
+    if (best) regionByKey.set(key, best);
   });
 
   const getRegionFromTrigger = (triggerEl) => {
@@ -768,28 +802,55 @@ svg.style.display = "block";
   };
 
   if (externalHoverSelector) {
-    const triggers = Array.from(document.querySelectorAll(externalHoverSelector));
-    if (triggers.length) {
-      const activateFromTrigger = (triggerEl) => {
-        const regionEl = getRegionFromTrigger(triggerEl);
-        if (!regionEl) return;
-        cancelReset();
-        zoomToRegion(regionEl);
-      };
-      const deactivateFromTrigger = () => {
-        cancelReset();
-        resetZoom();
-      };
-      triggers.forEach((triggerEl) => {
-        triggerEl.addEventListener("mouseenter", () => activateFromTrigger(triggerEl));
-        triggerEl.addEventListener("focusin", () => activateFromTrigger(triggerEl));
-        triggerEl.addEventListener("mouseleave", deactivateFromTrigger);
-        triggerEl.addEventListener("focusout", (event) => {
-          if (event.relatedTarget && triggerEl.contains(event.relatedTarget)) return;
-          deactivateFromTrigger();
-        });
-      });
-    }
+    const findTrigger = (node) =>
+      node && node.closest ? node.closest(externalHoverSelector) : null;
+    const activateFromTrigger = (triggerEl) => {
+      const regionEl = getRegionFromTrigger(triggerEl);
+      if (!regionEl) return;
+      cancelReset();
+      zoomToRegion(regionEl);
+    };
+    const deactivateFromTrigger = () => {
+      cancelReset();
+      resetZoom();
+    };
+
+    const handlePointerOver = (event) => {
+      const triggerEl = findTrigger(event.target);
+      if (!triggerEl) return;
+      activateFromTrigger(triggerEl);
+    };
+    const handlePointerOut = (event) => {
+      const fromTrigger = findTrigger(event.target);
+      if (!fromTrigger) return;
+      const toTrigger = findTrigger(event.relatedTarget);
+      if (toTrigger === fromTrigger) return;
+      deactivateFromTrigger();
+    };
+    const handleFocusIn = (event) => {
+      const triggerEl = findTrigger(event.target);
+      if (!triggerEl) return;
+      activateFromTrigger(triggerEl);
+    };
+    const handleFocusOut = (event) => {
+      const fromTrigger = findTrigger(event.target);
+      if (!fromTrigger) return;
+      const toTrigger = findTrigger(event.relatedTarget);
+      if (toTrigger === fromTrigger) return;
+      deactivateFromTrigger();
+    };
+
+    document.addEventListener("mouseover", handlePointerOver);
+    document.addEventListener("mouseout", handlePointerOut);
+    document.addEventListener("focusin", handleFocusIn);
+    document.addEventListener("focusout", handleFocusOut);
+
+    svg.addEventListener("remove", () => {
+      document.removeEventListener("mouseover", handlePointerOver);
+      document.removeEventListener("mouseout", handlePointerOut);
+      document.removeEventListener("focusin", handleFocusIn);
+      document.removeEventListener("focusout", handleFocusOut);
+    });
   }
 
   // Click/tap navigation for interactive map mode only
