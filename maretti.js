@@ -821,7 +821,6 @@ svg.style.display = "block";
   const getRegionFromTrigger = (triggerEl) => {
     if (!triggerEl || !triggerEl.classList) return null;
     for (const cls of triggerEl.classList) {
-      if (!cls.startsWith("--")) continue;
       const key = normalizeRegionKey(cls);
       if (key && regionByKey.has(key)) return regionByKey.get(key);
     }
@@ -868,14 +867,14 @@ svg.style.display = "block";
       deactivateFromTrigger();
     };
 
-    document.addEventListener("mouseover", handlePointerOver);
-    document.addEventListener("mouseout", handlePointerOut);
+    document.addEventListener("pointerover", handlePointerOver, true);
+    document.addEventListener("pointerout", handlePointerOut, true);
     document.addEventListener("focusin", handleFocusIn);
     document.addEventListener("focusout", handleFocusOut);
 
     svg.addEventListener("remove", () => {
-      document.removeEventListener("mouseover", handlePointerOver);
-      document.removeEventListener("mouseout", handlePointerOut);
+      document.removeEventListener("pointerover", handlePointerOver, true);
+      document.removeEventListener("pointerout", handlePointerOut, true);
       document.removeEventListener("focusin", handleFocusIn);
       document.removeEventListener("focusout", handleFocusOut);
     });
