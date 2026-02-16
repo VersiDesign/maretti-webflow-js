@@ -1598,6 +1598,68 @@ svg.style.display = "block";
     gsap.ticker.add(tick);
   }
 
+  function initNavShadowBlend() {
+    const navWrap = document.querySelector(".nav__wrap");
+    if (!navWrap) return;
+
+    const SHADOW_URL =
+      "https://cdn.prod.website-files.com/699293a30b6a4649dddfbe68/69929ca5c616dc8f4ce46934_menu-shadow.png";
+    const SHADOW_CLASS = "nav__shadow-blend-layer";
+    const FALLBACK_WIDTH = 254;
+    const FALLBACK_HEIGHT = 307.5;
+
+    let shadow = document.querySelector(`.${SHADOW_CLASS}`);
+    if (!shadow) {
+      shadow = document.createElement("img");
+      shadow.className = SHADOW_CLASS;
+      shadow.src = SHADOW_URL;
+      shadow.alt = "";
+      shadow.setAttribute("aria-hidden", "true");
+      shadow.decoding = "async";
+      document.body.appendChild(shadow);
+    }
+
+    const applyBaseStyles = () => {
+      shadow.style.position = "fixed";
+      shadow.style.pointerEvents = "none";
+      shadow.style.mixBlendMode = "multiply";
+      shadow.style.transformOrigin = "50% 50%";
+      shadow.style.objectFit = "cover";
+      shadow.style.maxWidth = "none";
+      shadow.style.willChange = "transform, left, top, width, height";
+    };
+
+    const sync = () => {
+      const rect = navWrap.getBoundingClientRect();
+      if (!rect.width || !rect.height) {
+        shadow.style.opacity = "0";
+        return;
+      }
+
+      const computed = window.getComputedStyle(navWrap);
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const transform = computed.transform && computed.transform !== "none" ? computed.transform : "";
+      const width = navWrap.offsetWidth || FALLBACK_WIDTH;
+      const height = navWrap.offsetHeight || FALLBACK_HEIGHT;
+      const nudgeX = Number.parseFloat(navWrap.dataset.shadowX || "0") || 0;
+      const nudgeY = Number.parseFloat(navWrap.dataset.shadowY || "0") || 0;
+      const zIndex = Number.parseFloat(computed.zIndex);
+      const resolvedZ = Number.isFinite(zIndex) ? zIndex + 1 : 999;
+
+      applyBaseStyles();
+      shadow.style.left = `${(centerX + nudgeX).toFixed(2)}px`;
+      shadow.style.top = `${(centerY + nudgeY).toFixed(2)}px`;
+      shadow.style.width = `${width.toFixed(2)}px`;
+      shadow.style.height = `${height.toFixed(2)}px`;
+      shadow.style.zIndex = `${resolvedZ}`;
+      shadow.style.opacity = "1";
+      shadow.style.transform = `translate(-50%, -50%) ${transform}`.trim();
+    };
+
+    sync();
+  }
+
   // =========================================================
   // Auto-init on pages that contain #map
   // =========================================================
@@ -1691,6 +1753,7 @@ svg.style.display = "block";
     initMapCloudParallax();
     initMapPatternParallax();
     initSubregionPanelScroll();
+    initNavShadowBlend();
 
     const mapEl = document.querySelector("#map");
     if (!mapEl) return;
