@@ -1623,9 +1623,26 @@ svg.style.display = "block";
       if (!ageGates.length) return;
 
       const approved = sessionStorage.getItem(AGE_GATE_SESSION_KEY) === "true";
+      const pageLockState = {
+        htmlOverflow: document.documentElement.style.overflow,
+        bodyOverflow: document.body.style.overflow,
+        bodyTouchAction: document.body.style.touchAction
+      };
+
+      const lockPageInteraction = () => {
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.overflow = "hidden";
+        document.body.style.touchAction = "none";
+      };
+
+      const unlockPageInteraction = () => {
+        document.documentElement.style.overflow = pageLockState.htmlOverflow;
+        document.body.style.overflow = pageLockState.bodyOverflow;
+        document.body.style.touchAction = pageLockState.bodyTouchAction;
+      };
 
       const setGateVisible = (el, visible) => {
-        el.style.display = visible ? "" : "none";
+        el.style.display = visible ? "flex" : "none";
         el.style.opacity = visible ? "1" : "0";
         el.style.pointerEvents = visible ? "auto" : "none";
       };
@@ -1654,6 +1671,7 @@ svg.style.display = "block";
           return;
         }
 
+        lockPageInteraction();
         setGateVisible(gate, true);
 
         const compass = gate.querySelector(".agegate__compass");
@@ -1702,18 +1720,25 @@ svg.style.display = "block";
               opacity: 0,
               duration: 0.25,
               ease: "power1.inOut",
-              onComplete: () => gate.remove()
+              onComplete: () => {
+                gate.remove();
+                unlockPageInteraction();
+              }
             });
             return;
           }
           gate.remove();
+          unlockPageInteraction();
         });
 
         noBtn?.addEventListener("click", () => {
           setGateVisible(gate, true);
+          lockPageInteraction();
           fadeInGate(gate);
         });
       });
+
+      if (approved) unlockPageInteraction();
     };
 
     if (!ageGateApprovedForSession) {
