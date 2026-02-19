@@ -1643,24 +1643,32 @@ svg.style.display = "block";
 
         const compass = gate.querySelector(".agegate__compass");
         if (compass) {
-          const MAX_ROTATE = 15;
-          let targetRotation = 0;
-          let currentRotation = 0;
+          const MAX_ROTATE = 45;
 
           const onMove = (event) => {
             const vw = window.innerWidth || 1;
             const nx = (event.clientX / vw - 0.5) * 2;
-            targetRotation = Math.max(-1, Math.min(1, nx)) * MAX_ROTATE;
-          };
+            const clamped = Math.max(-1, Math.min(1, nx));
+            const targetRotation = -clamped * MAX_ROTATE;
 
-          const tickCompass = () => {
-            currentRotation += (targetRotation - currentRotation) * 0.12;
-            compass.style.transform = `rotate(${currentRotation.toFixed(2)}deg)`;
-            requestAnimationFrame(tickCompass);
+            if (window.gsap) {
+              gsap.to(compass, {
+                rotate: targetRotation,
+                duration: 0.9,
+                ease: "expo.out",
+                overwrite: true
+              });
+              return;
+            }
+
+            // Fallback easing without GSAP.
+            const current = parseFloat(compass.dataset.rotate || "0");
+            const next = current + (targetRotation - current) * 0.08;
+            compass.dataset.rotate = String(next);
+            compass.style.transform = `rotate(${next.toFixed(2)}deg)`;
           };
 
           window.addEventListener("mousemove", onMove, { passive: true });
-          tickCompass();
         }
 
         const yesBtn = gate.querySelector("#btn-yes");
