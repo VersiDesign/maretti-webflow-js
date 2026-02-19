@@ -1642,6 +1642,7 @@ svg.style.display = "block";
         setGateVisible(gate, true);
 
         const compass = gate.querySelector(".agegate__compass");
+        let cleanupCompass = null;
         if (compass) {
           const MAX_ROTATE = 45;
 
@@ -1669,12 +1670,17 @@ svg.style.display = "block";
           };
 
           window.addEventListener("mousemove", onMove, { passive: true });
+          cleanupCompass = () => {
+            window.removeEventListener("mousemove", onMove);
+            if (window.gsap) gsap.killTweensOf(compass);
+          };
         }
 
         const yesBtn = gate.querySelector("#btn-yes");
         const noBtn = gate.querySelector("#btn-no");
 
         yesBtn?.addEventListener("click", () => {
+          if (cleanupCompass) cleanupCompass();
           sessionStorage.setItem(SESSION_KEY, "true");
           if (window.gsap) {
             gsap.to(gate, {
