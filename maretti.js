@@ -1602,12 +1602,27 @@ svg.style.display = "block";
   // Auto-init on pages that contain #map
   // =========================================================
   document.addEventListener("DOMContentLoaded", () => {
+    const AGE_GATE_SESSION_KEY = "agegate-approved";
+    const ageGatesOnPage = Array.from(document.querySelectorAll(".agegate"));
+    const ageGateApprovedForSession = sessionStorage.getItem(AGE_GATE_SESSION_KEY) === "true";
+
+    if (ageGatesOnPage.length) {
+      if (ageGateApprovedForSession) {
+        ageGatesOnPage.forEach((gate) => gate.remove());
+      } else {
+        ageGatesOnPage.forEach((gate) => {
+          gate.style.display = "none";
+          gate.style.opacity = "0";
+          gate.style.pointerEvents = "none";
+        });
+      }
+    }
+
     const initAgeGate = () => {
       const ageGates = Array.from(document.querySelectorAll(".agegate"));
       if (!ageGates.length) return;
 
-      const SESSION_KEY = "agegate-approved";
-      const approved = sessionStorage.getItem(SESSION_KEY) === "true";
+      const approved = sessionStorage.getItem(AGE_GATE_SESSION_KEY) === "true";
 
       const setGateVisible = (el, visible) => {
         el.style.display = visible ? "" : "none";
@@ -1681,7 +1696,7 @@ svg.style.display = "block";
 
         yesBtn?.addEventListener("click", () => {
           if (cleanupCompass) cleanupCompass();
-          sessionStorage.setItem(SESSION_KEY, "true");
+          sessionStorage.setItem(AGE_GATE_SESSION_KEY, "true");
           if (window.gsap) {
             gsap.to(gate, {
               opacity: 0,
@@ -1701,7 +1716,10 @@ svg.style.display = "block";
       });
     };
 
-    initAgeGate();
+    if (!ageGateApprovedForSession) {
+      if (document.readyState === "complete") initAgeGate();
+      else window.addEventListener("load", initAgeGate, { once: true });
+    }
 
     // Add shine overlays for gold logo images without changing layout
     const goldShineState = {
