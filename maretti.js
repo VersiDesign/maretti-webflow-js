@@ -1602,6 +1602,93 @@ svg.style.display = "block";
   // Auto-init on pages that contain #map
   // =========================================================
   document.addEventListener("DOMContentLoaded", () => {
+    const initAgeGate = () => {
+      const ageGates = Array.from(document.querySelectorAll(".agegate"));
+      if (!ageGates.length) return;
+
+      const SESSION_KEY = "agegate-approved";
+      const approved = sessionStorage.getItem(SESSION_KEY) === "true";
+
+      const setGateVisible = (el, visible) => {
+        el.style.display = visible ? "" : "none";
+        el.style.opacity = visible ? "1" : "0";
+        el.style.pointerEvents = visible ? "auto" : "none";
+      };
+
+      const fadeInGate = (el) => {
+        if (window.gsap) {
+          gsap.killTweensOf(el);
+          gsap.fromTo(
+            el,
+            { opacity: 0 },
+            { opacity: 1, duration: 0.35, ease: "power1.out" }
+          );
+          return;
+        }
+
+        el.style.transition = "opacity 350ms ease";
+        el.style.opacity = "0";
+        requestAnimationFrame(() => {
+          el.style.opacity = "1";
+        });
+      };
+
+      ageGates.forEach((gate) => {
+        if (approved) {
+          gate.remove();
+          return;
+        }
+
+        setGateVisible(gate, true);
+
+        const compass = gate.querySelector(".agegate__compass");
+        if (compass) {
+          const MAX_ROTATE = 15;
+          let targetRotation = 0;
+          let currentRotation = 0;
+
+          const onMove = (event) => {
+            const vw = window.innerWidth || 1;
+            const nx = (event.clientX / vw - 0.5) * 2;
+            targetRotation = Math.max(-1, Math.min(1, nx)) * MAX_ROTATE;
+          };
+
+          const tickCompass = () => {
+            currentRotation += (targetRotation - currentRotation) * 0.12;
+            compass.style.transform = `rotate(${currentRotation.toFixed(2)}deg)`;
+            requestAnimationFrame(tickCompass);
+          };
+
+          window.addEventListener("mousemove", onMove, { passive: true });
+          tickCompass();
+        }
+
+        const yesBtn = gate.querySelector("#btn-yes");
+        const noBtn = gate.querySelector("#btn-no");
+
+        yesBtn?.addEventListener("click", () => {
+          sessionStorage.setItem(SESSION_KEY, "true");
+          if (window.gsap) {
+            gsap.to(gate, {
+              opacity: 0,
+              duration: 0.25,
+              ease: "power1.inOut",
+              onComplete: () => gate.remove()
+            });
+            return;
+          }
+          gate.remove();
+        });
+
+        noBtn?.addEventListener("click", () => {
+          setGateVisible(gate, true);
+          fadeInGate(gate);
+        });
+      });
+    };
+
+    initAgeGate();
+
     // Add shine overlays for gold logo images without changing layout
     const goldShineState = {
       overlays: [],
