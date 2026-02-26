@@ -1331,10 +1331,10 @@ svg.style.display = "block";
     if (!wraps.length) return;
 
     const CLOUD_URLS = [
-      "https://cdn.prod.website-files.com/698e78dd0de8a5b8560987ae/698e78dd0de8a5b8560987f0_e7c64aae713e5b802d61c2a592c82f6c_Cloud-A.png",
-      "https://cdn.prod.website-files.com/698e78dd0de8a5b8560987ae/698e78dd0de8a5b8560987ef_d37326f6ef5e963ffc72c5f2e661d9a3_Cloud-B.png",
-      "https://cdn.prod.website-files.com/698e78dd0de8a5b8560987ae/698e78dd0de8a5b8560987ee_abe8af368b628910e764603a1a466245_Cloud-C.png",
-      "https://cdn.prod.website-files.com/698e78dd0de8a5b8560987ae/698e78dd0de8a5b8560987f1_a7896b376014c5707b11949497ca826e_Cloud-D.png"
+      "https://cdn.prod.website-files.com/699e117ff0f4acf3e74951e7/699e117ff0f4acf3e749525e_Cloud-A.png",
+      "https://cdn.prod.website-files.com/699e117ff0f4acf3e74951e7/699e117ff0f4acf3e74951ec_Cloud-B.png",
+      "https://cdn.prod.website-files.com/699e117ff0f4acf3e74951e7/699e117ff0f4acf3e749521e_Cloud-C.png",
+      "https://cdn.prod.website-files.com/699e117ff0f4acf3e74951e7/699e117ff0f4acf3e749520b_Cloud-D.png"
     ];
 
     const rand = (min, max) => min + Math.random() * (max - min);
@@ -1854,7 +1854,7 @@ svg.style.display = "block";
 
     SiteGSAP.initItalyMap({
       mount: mountSelector,
-      url: "https://cdn.prod.website-files.com/698afd2204216e1cca686cf9/698aff08357e0836fe433d52_map-14.svg",
+      url: "https://cdn.prod.website-files.com/699e117ff0f4acf3e74951e7/699e117ff0f4acf3e749521a_map-14.svg",
       waves: true,
       regionHoverZoom: true,
       regionHoverOptions: isOurWinesPage
