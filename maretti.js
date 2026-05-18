@@ -174,6 +174,13 @@ svg.style.display = "block";
     ? opts.baseShiftY
     : 0;
 
+  // Ensure newly added Sicily shape participates in the same hover/click system
+  const sicilyFill = svg.querySelector("#sicily-fill");
+  if (sicilyFill) {
+    sicilyFill.classList.add("region");
+    if (!sicilyFill.hasAttribute("data-region")) sicilyFill.setAttribute("data-region", "20");
+  }
+
   // If the SVG lacks .region classes, fall back to [data-region]
   const regionDataNodes = Array.from(svg.querySelectorAll("[data-region]"));
   if (regionDataNodes.length) {
@@ -390,7 +397,7 @@ svg.style.display = "block";
   const regionLabels = Array.from(
     svg.querySelectorAll("#labels-region .label--region, .labels--region .label--region, text.label--region")
   );
-  const REGION_LABEL_NAMES = ["PIEDMONT", "LOMBARDIA", "VENETO", "TUSCANY", "FRIULI", "PUGLIA"];
+  const REGION_LABEL_NAMES = ["PIEDMONT", "LOMBARDIA", "VENETO", "TUSCANY", "FRIULI", "PUGLIA", "SICILY"];
   let labelCenters = null;
   let activeLabelEl = null;
   let labelUnderlineLine = null;
@@ -400,7 +407,8 @@ svg.style.display = "block";
     VENETO: "/veneto",
     TUSCANY: "/tuscany",
     FRIULI: "/friuli",
-    PUGLIA: "/puglia"
+    PUGLIA: "/puglia",
+    SICILY: "/sicily"
   };
   const REGION_ARIA_LABELS = {
     PIEDMONT: "Piedmont region",
@@ -408,7 +416,8 @@ svg.style.display = "block";
     VENETO: "Veneto region",
     TUSCANY: "Tuscany region",
     FRIULI: "Friuli region",
-    PUGLIA: "Puglia region"
+    PUGLIA: "Puglia region",
+    SICILY: "Sicily region"
   };
 
   const getRegionHrefFromLabel = (labelText) => {
@@ -419,6 +428,7 @@ svg.style.display = "block";
     if (t.includes("TUSCANY")) return REGION_LINKS.TUSCANY;
     if (t.includes("FRIULI")) return REGION_LINKS.FRIULI;
     if (t.includes("PUGLIA")) return REGION_LINKS.PUGLIA;
+    if (t.includes("SICILY")) return REGION_LINKS.SICILY;
     return null;
   };
 
@@ -430,6 +440,7 @@ svg.style.display = "block";
     if (t.includes("TUSCANY")) return "TUSCANY";
     if (t.includes("FRIULI")) return "FRIULI";
     if (t.includes("PUGLIA")) return "PUGLIA";
+    if (t.includes("SICILY")) return "SICILY";
     return null;
   };
 
@@ -446,6 +457,7 @@ svg.style.display = "block";
     if (token === "tuscany" || token === "toscana") return "TUSCANY";
     if (token === "friuli" || token === "friuli-venezia-giulia") return "FRIULI";
     if (token === "puglia" || token === "apulia") return "PUGLIA";
+    if (token === "sicily" || token === "sicilia") return "SICILY";
     return "";
   };
   const REGION_GEO_ANCHORS = {
@@ -454,7 +466,8 @@ svg.style.display = "block";
     VENETO: { x: 0.47, y: 0.22 },
     FRIULI: { x: 0.58, y: 0.21 },
     TUSCANY: { x: 0.36, y: 0.43 },
-    PUGLIA: { x: 0.69, y: 0.63 }
+    PUGLIA: { x: 0.69, y: 0.63 },
+    SICILY: { x: 0.69, y: 0.84 }
   };
 
   const getSvgCenter = (el) => {
@@ -1854,7 +1867,7 @@ svg.style.display = "block";
 
     SiteGSAP.initItalyMap({
       mount: mountSelector,
-      url: "https://cdn.prod.website-files.com/699e117ff0f4acf3e74951e7/699e117ff0f4acf3e749521a_map-14.svg",
+      url: "https://cdn.prod.website-files.com/699e117ff0f4acf3e74951e7/6a0a8fbdb8bf694922cd1218_map-16.svg",
       waves: true,
       regionHoverZoom: true,
       regionHoverOptions: isOurWinesPage
