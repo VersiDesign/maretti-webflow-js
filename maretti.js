@@ -1867,7 +1867,7 @@ svg.style.display = "block";
 
     SiteGSAP.initItalyMap({
       mount: mountSelector,
-      url: "https://cdn.prod.website-files.com/699e117ff0f4acf3e74951e7/6a0a8fbdb8bf694922cd1218_map-16.svg",
+      url: "https://cdn.prod.website-files.com/699e117ff0f4acf3e74951e7/6a0a953a052f97f3ced66d3e_map-17.svg",
       waves: true,
       regionHoverZoom: true,
       regionHoverOptions: isOurWinesPage
