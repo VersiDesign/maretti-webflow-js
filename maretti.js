@@ -1901,7 +1901,7 @@ svg.style.display = "block";
                 baseShiftXFactor: 0.05
               }
             : {
-                baseShiftY: isMobileOurWinesMap ? 140 : 80
+                baseShiftY: isMobileOurWinesMap ? 140 : 140
               })
         : {}
     });
