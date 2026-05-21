@@ -173,6 +173,12 @@ svg.style.display = "block";
   const baseShiftY = Number.isFinite(opts.baseShiftY)
     ? opts.baseShiftY
     : 0;
+  const baseZoom = Number.isFinite(opts.baseZoom)
+    ? opts.baseZoom
+    : 1.5;
+  const hoverScale = Number.isFinite(opts.hoverScale)
+    ? opts.hoverScale
+    : 2;
 
   // Ensure newly added Sicily shape participates in the same hover/click system
   const sicilyFill = svg.querySelector("#sicily-fill");
@@ -204,10 +210,10 @@ svg.style.display = "block";
 
   // ====== TUNE THESE ======
   const BASE_PAD = 0;            // padding in SVG units around map when idle
-  const BASE_ZOOM = 1.5;         // >1 to slightly crop for a fuller frame
+  const BASE_ZOOM = baseZoom;    // >1 to slightly crop for a fuller frame
   const BASE_BIAS_X = -150;        // negative = crop more west (left)
   const BASE_BIAS_Y = -100;        // negative = crop more north (top)
-  const HOVER_SCALE = 2;       // multiplier relative to base scale
+  const HOVER_SCALE = hoverScale; // multiplier relative to base scale
   const HOVER_PAD = 6;            // keep a little buffer while zoomed
   const HOVER_BIAS_X = 50;      // negative = shift zoomed view further left
   const PIEDMONT_HOVER_BIAS_X = 100; // extra bias to prevent overlap on Piedmont hover
@@ -1873,12 +1879,26 @@ svg.style.display = "block";
     if (!mapEl) return;
     const path = (window.location.pathname || "").replace(/\/+$/, "") || "/";
     const isOurWinesPage = path === "/our-wines";
+    if (isOurWinesPage) document.documentElement.classList.add("is-our-wines-page");
     const isDesktopOurWinesMap = isOurWinesPage
       ? !!window.matchMedia?.("(min-width: 1367px) and (hover: hover) and (pointer: fine)")?.matches
       : true;
-    const isMobileOurWinesMap = isOurWinesPage
-      ? !!window.matchMedia?.("(max-width: 767px)")?.matches
-      : false;
+
+    const readMapNumber = (name, fallback) => {
+      const raw = window.getComputedStyle(mapEl).getPropertyValue(name).trim();
+      if (!raw) return fallback;
+      const value = parseFloat(raw);
+      return Number.isFinite(value) ? value : fallback;
+    };
+
+    const ourWinesCssMapOptions = isOurWinesPage
+      ? {
+          baseShiftXFactor: readMapNumber("--our-wines-map-shift-x-factor", 0),
+          baseShiftY: readMapNumber("--our-wines-map-shift-y", 10),
+          baseZoom: readMapNumber("--our-wines-map-base-zoom", 1.5),
+          hoverScale: readMapNumber("--our-wines-map-hover-scale", 2)
+        }
+      : {};
 
     // IMPORTANT:
     // Mount into the new viewport div if you add it in Webflow:
@@ -1898,10 +1918,14 @@ svg.style.display = "block";
                 externalHoverSelector: ".bottle__link",
                 hoverAnchorXFactor: 0.75,
                 externalHoverReset: false,
-                baseShiftXFactor: 0.05
+                ...ourWinesCssMapOptions,
+                baseShiftXFactor: readMapNumber("--our-wines-map-shift-x-factor", 0.05)
               }
             : {
-                baseShiftY: isMobileOurWinesMap ? 140 : 10
+                enableInteractions: false,
+                enableMapNavigation: false,
+                ...ourWinesCssMapOptions,
+                hoverScale: 1
               })
         : {}
     });
