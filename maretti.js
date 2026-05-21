@@ -1154,6 +1154,54 @@ svg.style.display = "block";
 })();
 (() => {
   const SiteGSAP = (window.SiteGSAP = window.SiteGSAP || {});
+
+  function initRegionMapFade() {
+    const wraps = Array.from(document.querySelectorAll(".map__wrap"));
+    if (!wraps.length) return;
+
+    const reveal = (wrap) => {
+      if (wrap.classList.contains("is-map-ready")) return;
+
+      requestAnimationFrame(() => {
+        wrap.classList.add("is-map-ready");
+      });
+    };
+
+    wraps.forEach((wrap) => {
+      const assets = Array.from(wrap.querySelectorAll("img, video")).filter((asset) => {
+        if (asset.tagName === "IMG") return !asset.complete;
+        if (asset.tagName === "VIDEO") return asset.readyState < 2;
+        return false;
+      });
+
+      if (!assets.length) {
+        reveal(wrap);
+        return;
+      }
+
+      let pending = assets.length;
+      const done = () => {
+        pending -= 1;
+        if (pending <= 0) reveal(wrap);
+      };
+
+      assets.forEach((asset) => {
+        let settled = false;
+        const doneOnce = () => {
+          if (settled) return;
+          settled = true;
+          done();
+        };
+
+        asset.addEventListener("load", doneOnce, { once: true });
+        asset.addEventListener("loadeddata", doneOnce, { once: true });
+        asset.addEventListener("error", doneOnce, { once: true });
+      });
+
+      window.setTimeout(() => reveal(wrap), 1200);
+    });
+  }
+
   function initSubregionPanelScroll() {
     const mapWrap = document.querySelector(".map__wrap");
     const contentWrap = document.querySelector(".content__wrap");
@@ -1848,6 +1896,7 @@ svg.style.display = "block";
     initMapCloudParallax();
     initMapPatternParallax();
     initSubregionPanelScroll();
+    initRegionMapFade();
 
     const mapEl = document.querySelector("#map");
     if (!mapEl) return;
